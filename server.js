@@ -11,16 +11,27 @@ const socket = require('socket.io')(http, {
     }
 });
 
+
+
 app.get('/', (req, res) => {
     res.send('Hello server is running ')
 });
 
 
 socket.on('connection', (connectedSocket) => {
-    console.log(`connection established : ${connectedSocket.id}`);
+    console.log(`connection established : ${connectedSocket.id}
+                Params recived :: ${connectedSocket.handshake.query.roomName} 
+                :: ${connectedSocket.handshake.query.tagName}`);
+    let roomName = connectedSocket.handshake.query.roomName;
+    let tagName = connectedSocket.handshake.query.tagName;
     connectedSocket.on('send-message', message => {
         console.log(`Message Recived ${message}`);
-        connectedSocket.broadcast.emit('recive-message', message);
+        connectedSocket.to(roomName).emit('recive-message', ({'message' : message, 'tag': tagName}));
+    });
+
+    connectedSocket.on('join-room', () => {
+        connectedSocket.join(roomName);
+        connectedSocket.to(roomName).emit('room-joined', tagName);
     });
 });
 
