@@ -1,3 +1,4 @@
+var PORT = process.env.PORT || 3000;
 const express = require('express');
 const cors = require('cors');
 
@@ -47,7 +48,7 @@ socket.on('connection', (connectedSocket) => {
     //             :: ${connectedSocket.handshake.query.tagName}`);
     let roomName = connectedSocket.handshake.query.roomName;
     let tagName = connectedSocket.handshake.query.tagName;
-    
+
     connectedSocket.on('send-message', message => {
         // console.log(`Message Recived ${message}`);
         connectedSocket.to(roomName).emit('recive-message', ({'message' : message, 'tag': tagName}));
@@ -94,6 +95,6 @@ socket.on('connection', (connectedSocket) => {
 
 });
 
-http.listen(3000, () => {
+http.listen(PORT , () => {
     console.log('code colab server is running');
 });
