@@ -17,20 +17,21 @@ const addUser =  (tag, room, id) => {
     users.push({
         tagName : tag,
         roomName : room,
-        id: id
+        id: id,
+        stream: null
     });
 
-    console.log(`user added :: ${tag} :: room :: ${room}`)
+    // console.log(`user added :: ${tag} :: room :: ${room}`)
 }
 
 const removeUserFromRoom =  (id) => {
     users = users.filter(user => (user.id != id));
-    console.log(`user removed :: ${id}`)
+    // console.log(`user removed :: ${id}`)
 }
 
 const getAllUsersFromRoom =  (room) => {
     let roomUsers = users.filter(user => (user.roomName == room));
-    console.log(`users in Room:: ${room} are :: ${roomUsers}`)
+    // console.log(`users in Room:: ${room} are :: ${roomUsers}`)
     return roomUsers;
 }
 
@@ -46,9 +47,24 @@ socket.on('connection', (connectedSocket) => {
     //             :: ${connectedSocket.handshake.query.tagName}`);
     let roomName = connectedSocket.handshake.query.roomName;
     let tagName = connectedSocket.handshake.query.tagName;
+    
     connectedSocket.on('send-message', message => {
-        console.log(`Message Recived ${message}`);
+        // console.log(`Message Recived ${message}`);
         connectedSocket.to(roomName).emit('recive-message', ({'message' : message, 'tag': tagName}));
+    });
+
+    connectedSocket.on('video', (userVideoDetails) => {
+        // let returnNum = parseInt(num) + 1
+        let users = getAllUsersFromRoom(roomName).map(x => {
+            if(x.id == userVideoDetails.id ) {
+                console.log('stream changed')
+                x.stream = userVideoDetails.stream;
+                return x;
+            }
+            return x;
+        });
+        console.log(users)
+        connectedSocket.to(roomName).emit('recive-video', users);
     });
 
     connectedSocket.on('join-room', () => {
@@ -75,13 +91,6 @@ socket.on('connection', (connectedSocket) => {
         let user = users.filter(user => user.id == privateMessageDetails.id)[0].tagName;
         callbackFn(`Private Message to ${user} was sent SuccessFully `);
     });
-
-
-
-
-    // connectedSocket.on('stream', image => {
-    //     connectedSocket.to(roomName).emit('stream-send', image);
-    // });
 
 });
 
